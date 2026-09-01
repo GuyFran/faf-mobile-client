@@ -2,11 +2,12 @@ package com.faforever.mobile.games.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonObject
 
 @Serializable
 data class LobbyMessage(
     val command: String,
-    val games: List<GameInfo>? = null,
+    val games: List<JsonObject>? = null,
     val players: List<PlayerInfo>? = null,
     // game_info can come as a single game or as part of a list
     val uid: Int? = null,

@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import com.faforever.mobile.network.FafConfig
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.first
 import net.openid.appauth.AuthorizationRequest
 import net.openid.appauth.AuthorizationResponse
 import net.openid.appauth.AuthorizationService
@@ -76,10 +77,7 @@ class AuthRepository @Inject constructor(
     }
 
     suspend fun refreshAccessToken(): Boolean {
-        val refreshToken = tokenManager.refreshToken
-        val currentRefreshToken = kotlinx.coroutines.flow.first { true }.let {
-            kotlinx.coroutines.flow.firstOrNull()
-        }
+        val currentRefreshToken = tokenManager.refreshToken.first() ?: return false
 
         return try {
             val request = TokenRequest.Builder(
@@ -87,7 +85,7 @@ class AuthRepository @Inject constructor(
                 FafConfig.OAUTH_CLIENT_ID,
             )
                 .setGrantType("refresh_token")
-                .setRefreshToken(currentRefreshToken.toString())
+                .setRefreshToken(currentRefreshToken)
                 .build()
 
             val tokenResponse = suspendCoroutine { cont ->
@@ -104,7 +102,7 @@ class AuthRepository @Inject constructor(
 
             tokenManager.saveTokens(
                 accessToken = tokenResponse.accessToken!!,
-                refreshToken = tokenResponse.refreshToken ?: currentRefreshToken.toString(),
+                refreshToken = tokenResponse.refreshToken ?: currentRefreshToken,
                 expiresIn = tokenResponse.accessTokenExpirationTime
                     ?.let { (it - System.currentTimeMillis()) / 1000 }
                     ?: 3600,
