@@ -26,10 +26,6 @@ class ChatViewModel @Inject constructor(
     private val _selectedChannel = MutableStateFlow<String?>(null)
     val selectedChannel: StateFlow<String?> = _selectedChannel.asStateFlow()
 
-    init {
-        viewModelScope.launch { chatRepository.connect() }
-    }
-
     fun selectChannel(channel: String) {
         _selectedChannel.value = channel
     }
@@ -44,8 +40,7 @@ class ChatViewModel @Inject constructor(
         chatRepository.joinChannel(channel)
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        chatRepository.disconnect()
+    fun reconnect() {
+        chatRepository.reconnect()
     }
 }

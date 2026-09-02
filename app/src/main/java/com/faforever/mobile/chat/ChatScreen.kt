@@ -114,6 +114,25 @@ fun ChatScreen(viewModel: ChatViewModel = hiltViewModel()) {
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
 
+            if (connectionState == IrcConnectionState.DISCONNECTED) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "Chat disconnected",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.weight(1f),
+                    )
+                    androidx.compose.material3.TextButton(onClick = { viewModel.reconnect() }) {
+                        Text("Reconnect")
+                    }
+                }
+            }
+
             if (channelList.size > 1) {
                 val selectedIndex = channelList.indexOf(selectedChannelName).coerceAtLeast(0)
                 ScrollableTabRow(selectedTabIndex = selectedIndex) {

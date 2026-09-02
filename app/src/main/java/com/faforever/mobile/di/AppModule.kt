@@ -9,6 +9,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.flow.first
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -37,12 +38,20 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(tokenManager: TokenManager): OkHttpClient =
+    fun provideOkHttpClient(
+        tokenManager: TokenManager,
+        deviceCodeAuth: com.faforever.mobile.auth.DeviceCodeAuth,
+    ): OkHttpClient =
         OkHttpClient.Builder()
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .addInterceptor { chain ->
-                val token = tokenManager.accessTokenBlocking()
+                // Interceptors run on OkHttp's worker threads, so blocking here is fine.
+                // Refresh-before-use keeps every authenticated call working past the ~1h expiry.
+                val token = kotlinx.coroutines.runBlocking {
+                    if (tokenManager.isTokenExpired()) deviceCodeAuth.ensureFreshToken()
+                    tokenManager.accessToken.first()
+                }
                 val request = if (token != null) {
                     chain.request().newBuilder()
                         .addHeader("Authorization", "Bearer $token")
@@ -54,7 +63,11 @@ object AppModule {
             }
             .addInterceptor(
                 HttpLoggingInterceptor().apply {
-                    level = HttpLoggingInterceptor.Level.BASIC
+                    level = if (com.faforever.mobile.BuildConfig.DEBUG) {
+                        HttpLoggingInterceptor.Level.BASIC
+                    } else {
+                        HttpLoggingInterceptor.Level.NONE
+                    }
                 },
             )
             .build()

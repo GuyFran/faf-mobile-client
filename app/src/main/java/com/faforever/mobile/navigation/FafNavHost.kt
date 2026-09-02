@@ -2,7 +2,8 @@ package com.faforever.mobile.navigation
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -22,10 +23,12 @@ import androidx.navigation.compose.rememberNavController
 import com.faforever.mobile.auth.LoginScreen
 import com.faforever.mobile.chat.ChatScreen
 import com.faforever.mobile.games.GamesScreen
+import com.faforever.mobile.profile.ProfileScreen
 
 enum class Screen(val route: String, val label: String, val icon: ImageVector) {
-    Chat("chat", "Chat Lobby", Icons.Default.Chat),
+    Chat("chat", "Chat", Icons.AutoMirrored.Filled.Chat),
     Games("games", "Play", Icons.Default.SportsEsports),
+    Profile("profile", "Profile", Icons.Default.Person),
 }
 
 @Composable
@@ -79,6 +82,15 @@ fun FafNavHost() {
             }
             composable(Screen.Games.route) {
                 GamesScreen()
+            }
+            composable(Screen.Profile.route) {
+                ProfileScreen(
+                    onLoggedOut = {
+                        navController.navigate("login") {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    },
+                )
             }
         }
     }

@@ -15,8 +15,8 @@ android {
         applicationId = "com.faforever.mobile"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.1.0"
 
         manifestPlaceholders["appAuthRedirectScheme"] = "com.faforever.mobile"
     }
@@ -28,6 +28,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            // Personal project: debug-sign release builds so `installRelease` works on-device.
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 
@@ -42,6 +44,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -90,4 +93,7 @@ dependencies {
 
     // Images
     implementation(libs.coil.compose)
+
+    // Unit tests (JVM)
+    testImplementation("junit:junit:4.13.2")
 }

@@ -51,6 +51,13 @@ class TokenManager(private val context: Context) {
         }
     }
 
+    suspend fun saveIdentity(name: String?, id: Long?) {
+        context.dataStore.edit { prefs ->
+            name?.let { prefs[USERNAME] = it }
+            id?.let { prefs[USER_ID] = it }
+        }
+    }
+
     suspend fun clearTokens() {
         context.dataStore.edit { it.clear() }
     }

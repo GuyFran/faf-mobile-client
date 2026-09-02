@@ -6,7 +6,7 @@ import kotlinx.serialization.json.JsonObject
 
 @Serializable
 data class LobbyMessage(
-    val command: String,
+    val command: String = "",
     val games: List<JsonObject>? = null,
     val players: List<PlayerInfo>? = null,
     // game_info can come as a single game or as part of a list

@@ -3,56 +3,70 @@
 ## Project Status
 | Item | Status |
 |------|--------|
-| Version | 1.0.0 |
+| Version | 1.1.0 (versionCode 2 — synced with app/build.gradle.kts) |
 | Platform | Android (Kotlin + Jetpack Compose) |
-| Build system | Gradle + Version Catalog |
-| Last updated | 2026-09-01 |
+| Desktop side | Fork `GuyFran/client` branch `companion-relay` (see its COMPANION.md) |
+| Last updated | 2026-09-02 (full-review gap-fix pass) |
 
 ## Implemented Features
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Project scaffold | Done | Gradle, app module, manifest |
-| OAuth2 login | Done | AppAuth + PKCE via browser redirect |
-| IRC Chat client | Done | Custom IRC parser over OkHttp WebSocket |
-| Chat UI | Done | Channel tabs, message list, user drawer, send |
-| Lobby WebSocket | Done | Connects to wss://ws.faforever.com |
-| Game list UI | Done | Cards with expand for teams/players |
-| Theme | Done | Material 3, dark FAF-inspired colors |
-| Navigation | Done | Bottom bar: Chat Lobby + Play |
+| OAuth2 device-code login | Done | Working client id; auto refresh incl. pre-request expiry check |
+| OAuth2 browser redirect | Kept, needs FAF client id | PKCE enabled, public-client auth, IO-dispatched |
+| IRC Chat | Done & verified | Binary-frame WS, SASL; token-refreshing reconnects, channel re-join, dedupe, manual Reconnect |
+| Chat UI | Done | Channels, user drawer, disconnected banner + reconnect |
+| Profile | Done & verified | Ratings + rating-evolution graph; identity backfill, no eternal spinner |
+| Companion mode (Android) | Built; mock-verified pending live e2e | RelayClient (+guards) → SnapshotAssembler → Play tab; editable connection settings; input validation |
+| Notification reducer | Done (pure), unwired | 19/19 tests; delivery/foreground service held for release gates |
+| Desktop companion relay | Done (fork `a907ebc`) | Failure-isolated, epoch snapshots, source-ready, caps, COMPANION.md |
+| Direct FAF lobby login | **Removed** | Deleted per DECISION §8.4/§10 (LobbyClient/GamesRepository gone) |
+
+## Direction: Companion Architecture (ratified — COLLAB_PLAYTAB.md §10)
+Phone = read-only viewer; the user's desktop FAF client relays `game_info` over the home LAN
+(`ws://<pc>:6900`, token-gated, trusted-LAN experimental). No UID, no desktop-session eviction.
+Chat + REST stay direct phone→FAF. Setup guide: fork's `COMPANION.md`; pairing info lands in
+`~/faf_companion_pairing.txt` on the PC.
 
 ## Backlog
-| Item | Priority | Notes |
-|------|----------|-------|
-| Register OAuth client ID with FAF | High | Current ID is placeholder; need to contact FAF admins |
-| Token refresh flow | Medium | AppAuth handles refresh but needs testing |
-| Map preview thumbnails | Low | Load from content.faforever.com |
-| Player rating display in game cards | Low | Use player_info data |
-| Private messages | Low | IRC DMs work but no UI yet |
-| Notifications | Low | New message badges, background service |
-| Settings screen | Low | Server config, theme toggle |
+| Item | Priority | Source/Date |
+|------|----------|-------------|
+| Release gate A: desktop suite under real Python 3.13+/CI | High | COLLAB §10.5 |
+| Release gate B: live phone↔desktop e2e (real forked client) | High | COLLAB §10.5 — needs Python installed on the PC |
+| Wire notifications (reducer → user-started foreground service) | Medium | After gates A+B |
+| Pinned `wss://` + QR pairing | Medium | Before sharing the app beyond own devices (COLLAB §10.4) |
+| Desktop settings UI for companion (enable/pairing/regenerate) | Medium | COMPANION.md documents the interim env-var/settings-key path |
+| Register a dedicated mobile OAuth client ID with FAF | Low | Device-flow id works meanwhile |
+| Map preview thumbnails / PM UI / notifications badges | Low | Original nice-to-haves |
 
 ## Architecture
 ```
 com.faforever.mobile/
-  auth/          OAuth2 PKCE flow
-  chat/          IRC WebSocket client + chat UI
-  games/         Lobby WebSocket + game list UI
-  network/       Config, API service
-  navigation/    Bottom nav host
-  di/            Hilt modules
-  ui/theme/      Material 3 theme
+  auth/          OAuth2 (device code + browser PKCE), tokens, refresh, identity backfill
+  chat/          IRC WebSocket client + chat UI                       [WORKING]
+  companion/     LAN relay client + snapshot assembler + event reducer [PRE-E2E]
+  games/         Play tab UI (fed by companion/)                       [PRE-E2E]
+  profile/       Ratings + rating-history graph                        [WORKING]
+  network/       Config, API service, SessionManager
+  navigation/    Bottom nav: Chat, Play, Profile
+  di/, ui/theme/
 ```
 
-## Key Dependencies
-- OkHttp 4.12 (WebSocket for both IRC and lobby)
-- Retrofit 2.11 (REST API)
-- AppAuth 0.11 (OAuth2)
-- Hilt 2.53 (DI)
-- Compose BOM 2024.12 (UI)
+## Key Facts For Any Agent
+- The phone must NEVER attempt FAF lobby login (anti-smurf UID; ratified in COLLAB §10). The
+  old direct path was deleted — do not reintroduce it.
+- Relay wire protocol (authoritative doc: fork `src/companion/relay.py`): newline-terminated
+  JSON; hello→hello_ok; source_offline; epoch-tagged snapshot_begin/end; single `game_info`
+  lines only. Phone states: DISCONNECTED/CONNECTING/WAITING/CONNECTED.
+- Ratings: `/data/leaderboardRating` + `/data/leaderboardRatingJournal`
+  (plot `meanAfter − 3·deviationAfter` over scoreTime). Bearer token required.
+- Kotlin unit tests: `app/src/test/.../companion/` (reducer 19 + assembler 9) —
+  `gradlew testDebugUnitTest`.
 
 ## Read Order
-1. `CLAUDE.md` - project overview
-2. `FafConfig.kt` - all server endpoints
-3. `IrcClient.kt` - IRC protocol implementation
-4. `LobbyClient.kt` - lobby server protocol
-5. `ChatScreen.kt` / `GamesScreen.kt` - UI
+1. `CLAUDE.md` - overview & the companion architecture fact
+2. `AGENTS.md` - this file
+3. `COLLAB_PLAYTAB.md` §9–§10 - the ratified decision (+ 21-turn review log)
+4. `companion/RelayClient.kt` + `SnapshotAssembler.kt` + `LobbyEventReducer.kt` - the live path
+5. Fork `GuyFran/client@companion-relay`: `src/companion/relay.py` + `COMPANION.md`
+6. `chat/IrcClient.kt` - IRC implementation
+7. `profile/ProfileRepository.kt` - ratings/history API usage

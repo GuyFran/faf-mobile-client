@@ -2,6 +2,10 @@ package com.faforever.mobile.games
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.faforever.mobile.companion.CompanionConfig
+import com.faforever.mobile.companion.CompanionPrefs
+import com.faforever.mobile.companion.CompanionRepository
+import com.faforever.mobile.companion.RelayState
 import com.faforever.mobile.games.model.Game
 import com.faforever.mobile.games.model.GameState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -10,6 +14,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -18,17 +24,30 @@ enum class GameFilter { ALL, OPEN, PLAYING }
 
 @HiltViewModel
 class GamesViewModel @Inject constructor(
-    private val gamesRepository: GamesRepository,
+    private val companionRepository: CompanionRepository,
+    private val companionPrefs: CompanionPrefs,
 ) : ViewModel() {
 
-    private val _filter = MutableStateFlow(GameFilter.ALL)
+    private val _filter = MutableStateFlow(GameFilter.OPEN)
     val filter: StateFlow<GameFilter> = _filter.asStateFlow()
 
-    val connectionState = gamesRepository.connectionState
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), LobbyConnectionState.DISCONNECTED)
+    /** null until DataStore has actually emitted — prevents flashing the setup form on entry. */
+    val config: StateFlow<CompanionConfig?> = companionPrefs.config
+        .map { it as CompanionConfig? }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    /** True while the user explicitly reopened the connection settings. */
+    private val _editing = MutableStateFlow(false)
+    val editing: StateFlow<Boolean> = _editing.asStateFlow()
+
+    val relayState: StateFlow<RelayState> = companionRepository.state
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), RelayState.DISCONNECTED)
+
+    val lastError: StateFlow<String?> = companionRepository.lastError
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     val games: StateFlow<List<Game>> = combine(
-        gamesRepository.games,
+        companionRepository.games,
         _filter,
     ) { gamesMap, filter ->
         gamesMap.values
@@ -46,7 +65,22 @@ class GamesViewModel @Inject constructor(
     val expandedGameId: StateFlow<Int?> = _expandedGameId.asStateFlow()
 
     init {
-        viewModelScope.launch { gamesRepository.connect() }
+        viewModelScope.launch {
+            val cfg = companionPrefs.config.first()
+            if (cfg.isConfigured && cfg.enabled) companionRepository.connect(cfg)
+        }
+    }
+
+    /** Called when the Play tab becomes visible: revive a given-up reconnect loop. */
+    fun onTabVisible() {
+        viewModelScope.launch {
+            val cfg = companionPrefs.config.first()
+            if (cfg.isConfigured && cfg.enabled &&
+                companionRepository.state.value == RelayState.DISCONNECTED
+            ) {
+                companionRepository.retry()
+            }
+        }
     }
 
     fun setFilter(filter: GameFilter) {
@@ -57,8 +91,27 @@ class GamesViewModel @Inject constructor(
         _expandedGameId.value = if (_expandedGameId.value == uid) null else uid
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        gamesRepository.disconnect()
+    fun startEditing() {
+        _editing.value = true
+    }
+
+    fun cancelEditing() {
+        _editing.value = false
+    }
+
+    fun saveAndConnect(host: String, port: Int, token: String) {
+        viewModelScope.launch {
+            companionPrefs.save(host, port, token, enabled = true)
+            _editing.value = false
+            companionRepository.disconnect()
+            companionRepository.connect(CompanionConfig(host, port, token, enabled = true))
+        }
+    }
+
+    fun reconnect() {
+        viewModelScope.launch {
+            val cfg = companionPrefs.config.first()
+            if (cfg.isConfigured && cfg.enabled) companionRepository.retry()
+        }
     }
 }

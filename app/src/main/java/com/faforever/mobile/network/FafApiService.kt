@@ -1,44 +1,30 @@
 package com.faforever.mobile.network
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonObject
 import retrofit2.http.GET
-import retrofit2.http.Path
 import retrofit2.http.Query
+import retrofit2.http.Url
 
 interface FafApiService {
 
-    @GET("irc/ergochat/token")
-    suspend fun getIrcToken(): IrcTokenResponse
+    @GET
+    suspend fun getIrcToken(@Url url: String): IrcTokenResponse
 
-    @GET("data/player/{id}")
-    suspend fun getPlayer(@Path("id") playerId: Int): JsonApiResponse<PlayerData>
-
-    @GET("data/player")
-    suspend fun searchPlayers(
+    @GET("data/leaderboardRating")
+    suspend fun getLeaderboardRatings(
         @Query("filter") filter: String,
-        @Query("page[limit]") limit: Int = 10,
-    ): JsonApiListResponse<PlayerData>
+        @Query("include") include: String = "leaderboard",
+    ): JsonObject
+
+    @GET("data/leaderboardRatingJournal")
+    suspend fun getRatingJournal(
+        @Query("filter") filter: String,
+        @Query("include") include: String = "gamePlayerStats",
+        @Query("sort") sort: String = "-gamePlayerStats.scoreTime",
+        @Query("page[size]") pageSize: Int = 2000,
+    ): JsonObject
 }
 
 @Serializable
 data class IrcTokenResponse(val value: String)
-
-@Serializable
-data class JsonApiResponse<T>(val data: JsonApiResource<T>)
-
-@Serializable
-data class JsonApiListResponse<T>(val data: List<JsonApiResource<T>>)
-
-@Serializable
-data class JsonApiResource<T>(
-    val type: String,
-    val id: String,
-    val attributes: T,
-)
-
-@Serializable
-data class PlayerData(
-    val login: String,
-    val country: String? = null,
-    val clan: String? = null,
-)
