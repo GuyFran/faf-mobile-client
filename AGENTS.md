@@ -16,7 +16,7 @@
 | IRC Chat | Done & verified | Binary-frame WS, SASL; token-refreshing reconnects, channel re-join, dedupe, manual Reconnect |
 | Chat UI | Done | Channels, user drawer, disconnected banner + reconnect |
 | Profile | Done & verified | Ratings + rating-evolution graph; identity backfill, no eternal spinner |
-| Companion mode (Android) | Built; mock-verified pending live e2e | RelayClient (+guards) → SnapshotAssembler → Play tab; editable connection settings; input validation |
+| Companion mode (Android) | **Mock e2e PASSED** (2026-09-02, on-device) | Pairing, epoch snapshot, live streaming, player expand, filters, edit-connection all verified via mock relay + adb reverse |
 | Notification reducer | Done (pure), unwired | 19/19 tests; delivery/foreground service held for release gates |
 | Desktop companion relay | Done (fork `a907ebc`) | Failure-isolated, epoch snapshots, source-ready, caps, COMPANION.md |
 | Direct FAF lobby login | **Removed** | Deleted per DECISION §8.4/§10 (LobbyClient/GamesRepository gone) |
