@@ -280,7 +280,15 @@ fun ProfileScreen(
                 Text("Sign out")
             }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(8.dp))
+
+            Text(
+                text = "FAF Mobile v${com.faforever.mobile.BuildConfig.VERSION_NAME}",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
+            )
+
+            Spacer(Modifier.height(12.dp))
         }
     }
 }

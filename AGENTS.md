@@ -3,7 +3,7 @@
 ## Project Status
 | Item | Status |
 |------|--------|
-| Version | 1.1.0 (versionCode 2 — synced with app/build.gradle.kts) |
+| Version | 1.1.1 (versionCode 3 — synced with app/build.gradle.kts) |
 | Platform | Android (Kotlin + Jetpack Compose) |
 | Desktop side | Fork `GuyFran/client` branch `companion-relay` (see its COMPANION.md) |
 | Last updated | 2026-09-02 (full-review gap-fix pass) |

@@ -1,13 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- FAF Mobile emblem: gold phoenix wings + rising commander chevron.
+     Original geometry (not the FAF trademark asset), FAF-inspired palette.
+     All artwork stays within ~r31 of center so circular masks never clip it. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path
-        android:fillColor="#4DA6FF"
-        android:pathData="M54,30 L72,54 L63,54 L63,72 L45,72 L45,54 L36,54 Z"/>
+
+    <!-- Left wing: upper blade -->
     <path
         android:fillColor="#D4A843"
-        android:pathData="M42,74 L66,74 L66,78 L42,78 Z"/>
+        android:pathData="M47,55 L27,42 L31,53 L45,61 Z"/>
+    <!-- Left wing: lower echo blade -->
+    <path
+        android:fillColor="#B8933A"
+        android:pathData="M47,65 L28,59 L31,66 L46,70 Z"/>
+
+    <!-- Right wing: upper blade -->
+    <path
+        android:fillColor="#D4A843"
+        android:pathData="M61,55 L81,42 L77,53 L63,61 Z"/>
+    <!-- Right wing: lower echo blade -->
+    <path
+        android:fillColor="#B8933A"
+        android:pathData="M61,65 L80,59 L77,66 L62,70 Z"/>
+
+    <!-- Rising commander chevron (drawn last, on top of the wing roots) -->
+    <path
+        android:fillColor="#4DA6FF"
+        android:pathData="M54,28 L65,47 L58,47 L58,60 L50,60 L50,47 L43,47 Z"/>
+    <!-- Chevron highlight edge -->
+    <path
+        android:fillColor="#7FC1FF"
+        android:pathData="M54,28 L65,47 L61,47 L54,35 Z"/>
+
+    <!-- Tapered base pedestal -->
+    <path
+        android:fillColor="#D4A843"
+        android:pathData="M46,74 L62,74 L58,79 L50,79 Z"/>
 </vector>
