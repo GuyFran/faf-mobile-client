@@ -6,7 +6,7 @@ Android companion app for Forged Alliance Forever (FAF): Chat Lobby, a read-only
 
 **Key architecture fact:** the phone NEVER logs into the FAF lobby server (blocked by FAF's
 anti-smurf UID — see COLLAB_PLAYTAB.md §2/§10). The open-lobby list comes from the user's own
-desktop FAF client (fork `GuyFran/client`, branch `companion-relay`) which relays `game_info`
+desktop FAF client (fork `GuyFran/faf-client-python`, branch `companion-relay`) which relays `game_info`
 over the home LAN (`ws://<pc>:6900`, token-gated). Chat and the REST API are direct phone→FAF.
 
 ## Tech Stack

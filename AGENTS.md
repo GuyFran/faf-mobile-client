@@ -5,7 +5,7 @@
 |------|--------|
 | Version | 1.1.1 (versionCode 3 — synced with app/build.gradle.kts) |
 | Platform | Android (Kotlin + Jetpack Compose) |
-| Desktop side | Fork `GuyFran/client` branch `companion-relay` (see its COMPANION.md) |
+| Desktop side | Fork `GuyFran/faf-client-python` branch `companion-relay` (see its COMPANION.md) |
 | Last updated | 2026-09-02 (full-review gap-fix pass) |
 
 ## Implemented Features
@@ -67,6 +67,6 @@ com.faforever.mobile/
 2. `AGENTS.md` - this file
 3. `COLLAB_PLAYTAB.md` §9–§10 - the ratified decision (+ 21-turn review log)
 4. `companion/RelayClient.kt` + `SnapshotAssembler.kt` + `LobbyEventReducer.kt` - the live path
-5. Fork `GuyFran/client@companion-relay`: `src/companion/relay.py` + `COMPANION.md`
+5. Fork `GuyFran/faf-client-python@companion-relay`: `src/companion/relay.py` + `COMPANION.md`
 6. `chat/IrcClient.kt` - IRC implementation
 7. `profile/ProfileRepository.kt` - ratings/history API usage
