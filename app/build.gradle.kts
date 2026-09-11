@@ -15,8 +15,8 @@ android {
         applicationId = "com.faforever.mobile"
         minSdk = 26
         targetSdk = 36
-        versionCode = 3
-        versionName = "1.1.1"
+        versionCode = 4
+        versionName = "1.1.2"
 
         manifestPlaceholders["appAuthRedirectScheme"] = "com.faforever.mobile"
     }
