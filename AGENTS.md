@@ -3,10 +3,10 @@
 ## Project Status
 | Item | Status |
 |------|--------|
-| Version | 1.1.2 (versionCode 4 — synced with app/build.gradle.kts) |
+| Version | 1.1.3 (versionCode 5 — synced with app/build.gradle.kts) |
 | Platform | Android (Kotlin + Jetpack Compose) |
 | Desktop side | Fork `GuyFran/faf-client-python` branch `companion-relay` (see its COMPANION.md) |
-| Last updated | 2026-09-11 (docs pass); code last touched 2026-09-02 (full-review gap-fix pass) |
+| Last updated | 2026-09-18 (docs pass — fixed the release-gate Python target 3.13→3.14); code last touched 2026-09-02 (full-review gap-fix pass) |
 
 ## Implemented Features
 | Feature | Status | Notes |
@@ -30,7 +30,7 @@ Chat + REST stay direct phone→FAF. Setup guide: fork's `COMPANION.md`; pairing
 ## Backlog
 | Item | Priority | Source/Date |
 |------|----------|-------------|
-| Release gate A: desktop suite under real Python 3.13+/CI | High | COLLAB §10.5 |
+| Release gate A: desktop suite under real Python 3.14/CI | High | COLLAB §10.5 (fork targets 3.14) |
 | Release gate B: live phone↔desktop e2e (real forked client) | High | COLLAB §10.5 — needs Python installed on the PC |
 | Wire notifications (reducer → user-started foreground service) | Medium | After gates A+B |
 | Pinned `wss://` + QR pairing | Medium | Before sharing the app beyond own devices (COLLAB §10.4) |
