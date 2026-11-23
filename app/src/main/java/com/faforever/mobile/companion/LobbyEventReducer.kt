@@ -8,7 +8,7 @@ import com.faforever.mobile.games.model.GameState
  * those live outside (Turn 14). Feed it every RelayInput in order; it returns the next state
  * plus any events, each carrying an immutable context snapshot.
  *
- * Rules (COLLAB_PLAYTAB.md §9.5, refined through Turn 16):
+ * Rules (docs/history/COLLAB_PLAYTAB.md §9.4, Turns 13-18):
  * - Baseline suppression: a snapshot (begin..end) rebuilds the baseline and emits NOTHING.
  * - Epoch-validated snapshots: SnapshotEnd only completes a SYNCING phase whose epoch matches its
  *   SnapshotBegin. An end-without-begin, a stale/mismatched end, or a superseding newer begin can

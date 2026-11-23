@@ -1,5 +1,7 @@
 # COLLAB: Play-Tab Game List — Two-Agent Decision Log
 
+> **History only, not a status source.** Decision log of 2026-09-01. Current state: [AGENTS.md](../../AGENTS.md), [STATUS](../STATUS.md), [BACKLOG](../BACKLOG.md). The ratified outcome (section 10) is summarized in [ARCHITECTURE](../ARCHITECTURE.md). The fork named `GuyFran/client` here is now `GuyFran/faf-client-python`. Line links and test counts are as of that date.
+
 A shared, turn-based working doc for two AI agents to converge on the best approach
 for the **Play tab live game list**, which is currently blocked. Both agents read this
 file at the start of every turn and append to the **Ping-Pong Log** at the bottom.
@@ -514,14 +516,14 @@ FAF lobby ──(game_info)──► Desktop FAF client (authenticated, has UID)
    ([relay lines 113-124](https://github.com/GuyFran/client/blob/f3e1de2925c12fbe7b3e053c99923a793222cd70/src/companion/relay.py#L113-L124)), and the server sends each
    WebSocket text message without `\n` while the Android client only dispatches newline-terminated
    records ([relay lines 156-167](https://github.com/GuyFran/client/blob/f3e1de2925c12fbe7b3e053c99923a793222cd70/src/companion/relay.py#L156-L167),
-   [`RelayClient.kt`](app/src/main/java/com/faforever/mobile/companion/RelayClient.kt)). Prefer
+   [`RelayClient.kt`](../../app/src/main/java/com/faforever/mobile/companion/RelayClient.kt)). Prefer
    one JSON object per WebSocket text message and parse each callback as one record; otherwise
    append a newline consistently on every server send.
 
    **Turn 8 verification of `f67e784`: PARTIAL PASS.** Newline framing, the forced
    `command:"game_info"` envelope, authoritative full-batch replacement, and phone-side staging
    are correct ([relay lines 142-204](https://github.com/GuyFran/client/blob/f67e7840ec37824cc9b1486a00c0a7baf3a5ac3f/src/companion/relay.py#L142-L204),
-   [`RelayClient.kt`](app/src/main/java/com/faforever/mobile/companion/RelayClient.kt)). But the
+   [`RelayClient.kt`](../../app/src/main/java/com/faforever/mobile/companion/RelayClient.kt)). But the
    desktop never clears/broadcasts an empty epoch from `ServerConnection.on_disconnect`; a phone
    pairing during a FAF outage still receives stale games, and an already paired phone keeps
    showing them until a future full batch. Add a guarded `on_upstream_disconnected()` which
@@ -674,11 +676,11 @@ FAF lobby ──(game_info)──► Desktop FAF client (authenticated, has UID)
    14 freshly re-run JVM tests correctly cover baseline suppression and the requested state/count
    edges. Two agreed details are missing. First, `SnapshotBegin`/`SnapshotEnd` carry no epoch and
    `ReducerState` stores none; any `SnapshotEnd`—even while `WAITING`—sets `LIVE`
-   ([reducer lines 23-32 and 55-78](app/src/main/java/com/faforever/mobile/companion/LobbyEventReducer.kt)).
+   ([reducer lines 23-32 and 55-78](../../app/src/main/java/com/faforever/mobile/companion/LobbyEventReducer.kt)).
    Preserve the relay's epoch in both inputs/state and accept `SnapshotEnd(epoch)` only for the
    matching active snapshot; test stray, stale, and mismatched ends. Second, events carry only UID
    and title, not the immutable host and previous/current counts required in Turn 14
-   ([lines 36-53](app/src/main/java/com/faforever/mobile/companion/LobbyEventReducer.kt)). Add a
+   ([lines 36-53](../../app/src/main/java/com/faforever/mobile/companion/LobbyEventReducer.kt)). Add a
    compact event context before delivery code depends on a mutable/removed game map. Also require
    `maxPlayers >= 2` for almost-full and non-negative counts. These are small reducer-contract
    fixes, not objections to the taxonomy or architecture.
@@ -688,7 +690,7 @@ FAF lobby ──(game_info)──► Desktop FAF client (authenticated, has UID)
    applies the precise capacity guards; its 19 tests pass on a fresh forced run. `RelayClient`
    correctly rejects all callbacks from superseded sockets. However its `snapshot_end` branch
    clears `staging` and `syncEpoch` *after* the match check regardless of whether the end matched
-   ([RelayClient lines 174-186](app/src/main/java/com/faforever/mobile/companion/RelayClient.kt)).
+   ([RelayClient lines 174-186](../../app/src/main/java/com/faforever/mobile/companion/RelayClient.kt)).
    Thus a stale/mismatched end does not commit, but it still destroys the newer valid snapshot;
    later game lines can leak into the live map and the matching end cannot complete it. Move both
    clears inside the successful-match branch. Reject `snapshot_begin` when `epoch == null`, so a
@@ -699,8 +701,8 @@ FAF lobby ──(game_info)──► Desktop FAF client (authenticated, has UID)
    **Turn 20 final verification: PASS.** `SnapshotAssembler` rejects null begins/ends, preserves
    both staged and committed state across a mismatched end, commits only a matching epoch, and is
    now the sole display-map state machine used by `RelayClient`
-   ([assembler](app/src/main/java/com/faforever/mobile/companion/SnapshotAssembler.kt),
-   [relay integration](app/src/main/java/com/faforever/mobile/companion/RelayClient.kt)). A fresh
+   ([assembler](../../app/src/main/java/com/faforever/mobile/companion/SnapshotAssembler.kt),
+   [relay integration](../../app/src/main/java/com/faforever/mobile/companion/RelayClient.kt)). A fresh
    forced Gradle run reports reducer **19/19** plus assembler **9/9**, with zero failures, errors,
    or skips. The companion design and pure notification core are accepted; delivery/service wiring
    remains behind the release gates recorded in §10.
@@ -764,7 +766,7 @@ pairing is required because a hello token sent over `ws://` can be observed or m
   WebSocket messages without newlines, but `RelayClient.onData` waits for `\n`; and initial-batch
   snapshot entries are serialized without `command: "game_info"`
   ([relay lines 113-167](https://github.com/GuyFran/client/blob/f3e1de2925c12fbe7b3e053c99923a793222cd70/src/companion/relay.py#L113-L167),
-  [`RelayClient.kt`](app/src/main/java/com/faforever/mobile/companion/RelayClient.kt)).
+  [`RelayClient.kt`](../../app/src/main/java/com/faforever/mobile/companion/RelayClient.kt)).
 - Same-thread Qt ownership is reasonable, not inherently unsafe: parent and child share thread
   affinity and queued delivery can defer relay work until the event loop regains control
   ([Qt thread-affinity rules](https://doc.qt.io/qt-6/threads-qobject.html)). It is not a substitute
@@ -888,7 +890,7 @@ synthetic failure tests and one e2e transport run.
   another explicit cross-platform generator rather than shelling out to an assumed `openssl`.
 - **Authentication state needs an acknowledgement.** OkHttp `onOpen` currently sets
   `CONNECTED` before the relay validates the token
-  ([`RelayClient.kt`](app/src/main/java/com/faforever/mobile/companion/RelayClient.kt)). Add
+  ([`RelayClient.kt`](../../app/src/main/java/com/faforever/mobile/companion/RelayClient.kt)). Add
   `hello_ok`; only then report authenticated, and separately report `WAITING_FOR_DESKTOP` until
   the first authoritative upstream snapshot. This makes both setup errors and notifications
   truthful.
@@ -984,7 +986,7 @@ wiring and live-use claims remain gated on corrected automated tests and e2e.
   `snapshot_end` by setting `CONNECTED`, so `WAITING` lasts only between adjacent frames. Offline
   likewise publishes an empty snapshot but no durable source-offline state
   ([relay lines 159-170 and 243-259](https://github.com/GuyFran/client/blob/2e2f3ef6c4cdf7e48c52586b84fe9caa94464ca6/src/companion/relay.py#L159-L170),
-  [`RelayClient.kt`](app/src/main/java/com/faforever/mobile/companion/RelayClient.kt)). Add an
+  [`RelayClient.kt`](../../app/src/main/java/com/faforever/mobile/companion/RelayClient.kt)). Add an
   explicit source-ready state as specified in §9.3 Q3.
 - **Security controls are improved but incomplete.** Token and auth handling are now sound for
   casual access, but `Any` fallback defeats fail-closed interface binding; Qt size/connection
@@ -1267,7 +1269,7 @@ corrections, not an architecture challenge; service/delivery remains properly ou
   independently confirmed.
 - Threshold direction is correct: 8→7 is not “approaching full,” and 7→8 is a new rising edge.
   `roseToFull`/`roseToAlmost` plus the `if/else` also correctly make a direct jump emit full only
-  ([reducer lines 104-116](app/src/main/java/com/faforever/mobile/companion/LobbyEventReducer.kt)).
+  ([reducer lines 104-116](../../app/src/main/java/com/faforever/mobile/companion/LobbyEventReducer.kt)).
 - The reducer has `WAITING/SYNCING/LIVE` but not the epoch requested in Turn 14. Its unguarded
   `SnapshotEnd` changes any phase to `LIVE`; `RelayInput` discards the desktop's numeric epoch.
   WebSocket order makes the happy path safe, but this weakens reconnect/stale-callback handling

@@ -1,72 +1,51 @@
-# FAF Mobile Client - Multi-AI Agents Doc
+# FAF Mobile — Multi-AI Agents Entry Point
 
-## Project Status
-| Item | Status |
-|------|--------|
-| Version | 1.1.3 (versionCode 5 — synced with app/build.gradle.kts) |
-| Platform | Android (Kotlin + Jetpack Compose) |
-| Desktop side | Fork `GuyFran/faf-client-python` branch `companion-relay` (see its COMPANION.md) |
-| Last updated | 2026-09-18 (docs pass — fixed the release-gate Python target 3.13→3.14); code last touched 2026-09-02 (full-review gap-fix pass) |
+Start here. Android companion app for Forged Alliance Forever (FAF): chat, a read-only list of
+open lobbies fed by the user's own PC, and a ratings profile.
 
-## Implemented Features
-| Feature | Status | Notes |
-|---------|--------|-------|
-| OAuth2 device-code login | Done | Working client id; auto refresh incl. pre-request expiry check |
-| OAuth2 browser redirect | Kept, needs FAF client id | PKCE enabled, public-client auth, IO-dispatched |
-| IRC Chat | Done & verified | Binary-frame WS, SASL; token-refreshing reconnects, channel re-join, dedupe, manual Reconnect |
-| Chat UI | Done | Channels, user drawer, disconnected banner + reconnect |
-| Profile | Done & verified | Ratings + rating-evolution graph; identity backfill, no eternal spinner |
-| Companion mode (Android) | **Mock e2e PASSED** (2026-09-02, on-device) | Pairing, epoch snapshot, live streaming, player expand, filters, edit-connection all verified via mock relay + adb reverse |
-| Notification reducer | Done (pure), unwired | 19/19 tests; delivery/foreground service held for release gates |
-| Desktop companion relay | Done (fork `companion-relay`, advanced past `a907ebc` as of 2026-09-11) | Failure-isolated, epoch snapshots, source-ready, caps; since hardened with a one-shot `setup_companion.ps1` (+ faf-uid download), VS Code tasks, real-LAN-adapter binding (`FAF_COMPANION_BIND_IP` override) and its own `AGENTS.md`/`COMPANION.md` |
-| Direct FAF lobby login | **Removed** | Deleted per DECISION §8.4/§10 (LobbyClient/GamesRepository gone) |
+| Item | Value |
+|------|-------|
+| Version | **1.1.4** (versionCode 6). Source of truth: `versionName` / `versionCode` in `app/build.gradle.kts` |
+| Status | **Active, personal use.** Trusted home LAN only, not for distribution (see [BACKLOG](docs/BACKLOG.md)) |
+| Owner | GuyFran (guynemerp@free.fr) |
+| Authority order | `~/.claude/CLAUDE.md` → root `Projects/AGENTS.md` → this project (`AGENTS.md`, `CLAUDE.md`) |
+| Stack | Kotlin, Jetpack Compose, Material 3, Hilt, OkHttp, Retrofit, DataStore, AppAuth. Android SDK 36, min 26, JDK 17 |
+| Desktop side | Fork `GuyFran/faf-client-python`, branch `companion-relay` (its own `AGENTS.md`, `COMPANION.md`) |
 
-## Direction: Companion Architecture (ratified — COLLAB_PLAYTAB.md §10)
-Phone = read-only viewer; the user's desktop FAF client relays `game_info` over the home LAN
-(`ws://<pc>:6900`, token-gated, trusted-LAN experimental). No UID, no desktop-session eviction.
-Chat + REST stay direct phone→FAF. Setup guide: fork's `COMPANION.md`; pairing info lands in
-`~/faf_companion_pairing.txt` on the PC.
+## Read order
 
-## Backlog
-| Item | Priority | Source/Date |
-|------|----------|-------------|
-| Release gate A: desktop suite under real Python 3.14/CI | High | COLLAB §10.5 (fork targets 3.14) |
-| Release gate B: live phone↔desktop e2e (real forked client) | High | COLLAB §10.5 — needs Python installed on the PC |
-| Wire notifications (reducer → user-started foreground service) | Medium | After gates A+B |
-| Pinned `wss://` + QR pairing | Medium | Before sharing the app beyond own devices (COLLAB §10.4) |
-| Desktop settings UI for companion (enable/pairing/regenerate) | Medium | COMPANION.md documents the interim env-var/settings-key path |
-| Register a dedicated mobile OAuth client ID with FAF | Low | Device-flow id works meanwhile |
-| Map preview thumbnails / PM UI / notifications badges | Low | Original nice-to-haves |
+| # | Doc | Use |
+|---|-----|-----|
+| 1 | `AGENTS.md` | Entry point, hard rules |
+| 2 | `CLAUDE.md` | Short project brief |
+| 3 | [docs/STATUS.md](docs/STATUS.md) | What works, what was verified and when |
+| 4 | [docs/BACKLOG.md](docs/BACKLOG.md) | Open work, known defects |
+| 5 | [docs/SPEC.md](docs/SPEC.md) | Product scope and behaviour as implemented |
+| 6 | [docs/UI_UX.md](docs/UI_UX.md) | Screens, states, labels, theme |
+| 7 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Modules, endpoints, relay protocol, ratified decision |
+| 8 | [docs/CHANGELOG.md](docs/CHANGELOG.md) | Version history |
+| — | [docs/history/COLLAB_PLAYTAB.md](docs/history/COLLAB_PLAYTAB.md) | **History only, not a status source.** Full 21-turn decision log |
 
-## Architecture
-```
-com.faforever.mobile/
-  auth/          OAuth2 (device code + browser PKCE), tokens, refresh, identity backfill
-  chat/          IRC WebSocket client + chat UI                       [WORKING]
-  companion/     LAN relay client + snapshot assembler + event reducer [PRE-E2E]
-  games/         Play tab UI (fed by companion/)                       [PRE-E2E]
-  profile/       Ratings + rating-history graph                        [WORKING]
-  network/       Config, API service, SessionManager
-  navigation/    Bottom nav: Chat, Play, Profile
-  di/, ui/theme/
-```
+## Hard rules
 
-## Key Facts For Any Agent
-- The phone must NEVER attempt FAF lobby login (anti-smurf UID; ratified in COLLAB §10). The
-  old direct path was deleted — do not reintroduce it.
-- Relay wire protocol (authoritative doc: fork `src/companion/relay.py`): newline-terminated
-  JSON; hello→hello_ok; source_offline; epoch-tagged snapshot_begin/end; single `game_info`
-  lines only. Phone states: DISCONNECTED/CONNECTING/WAITING/CONNECTED.
-- Ratings: `/data/leaderboardRating` + `/data/leaderboardRatingJournal`
-  (plot `meanAfter − 3·deviationAfter` over scoreTime). Bearer token required.
-- Kotlin unit tests: `app/src/test/.../companion/` (reducer 19 + assembler 9) —
-  `gradlew testDebugUnitTest`.
+- The phone must **never** attempt FAF lobby login. It is blocked by the anti-smurf UID and would
+  evict the desktop session. The old direct path was deleted; do not reintroduce it.
+- Do not reverse-engineer or forge FAF's UID.
+- The Play tab stays **read-only**: no join, host or matchmaking.
+- Do not wire notifications or a foreground service before release gates A and B pass.
+- Do not share the app beyond the owner's devices before pinned `wss://` lands.
+- Never log or export OAuth tokens or the pairing token.
 
-## Read Order
-1. `CLAUDE.md` - overview & the companion architecture fact
-2. `AGENTS.md` - this file
-3. `COLLAB_PLAYTAB.md` §9–§10 - the ratified decision (+ 21-turn review log)
-4. `companion/RelayClient.kt` + `SnapshotAssembler.kt` + `LobbyEventReducer.kt` - the live path
-5. Fork `GuyFran/faf-client-python@companion-relay`: `AGENTS.md` + `src/companion/relay.py` + `COMPANION.md`
-6. `chat/IrcClient.kt` - IRC implementation
-7. `profile/ProfileRepository.kt` - ratings/history API usage
+## Recent work (newest first)
+
+| Version | Date | Work |
+|---------|------|------|
+| 1.1.4 | 2026-11-24 | Docs restructured under `docs/`; specs and UI/UX rewritten from code; code-audit defects logged |
+| 1.1.3 | 2026-09-18 | Release-gate Python target corrected to 3.14 |
+| 1.1.2 | 2026-09 | Stale fork reference refreshed |
+| 1.1.1 | 2026-09 | Custom launcher emblem, themed icon, in-app version |
+| 1.1.0 | 2026-09-02 | Companion architecture, relay-fed Play tab, profile, device-code auth |
+
+## Build and test
+
+Use the VS Code tasks (`FAF Mobile: ...`) or Android Studio. Unit tests: `gradlew testDebugUnitTest`.
