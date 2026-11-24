@@ -58,6 +58,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.faforever.mobile.companion.RelayState
 import com.faforever.mobile.games.model.Game
 import com.faforever.mobile.games.model.GameState
+import com.faforever.mobile.ui.state.rememberPersistedLazyListState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -175,7 +176,9 @@ fun GamesScreen(viewModel: GamesViewModel = hiltViewModel()) {
                 )
             }
         } else {
+            val listState = rememberPersistedLazyListState("games.list.${filter.name}", ready = games.isNotEmpty())
             LazyColumn(
+                state = listState,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 8.dp),

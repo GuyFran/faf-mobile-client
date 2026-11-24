@@ -3,6 +3,7 @@ package com.faforever.mobile.chat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.faforever.mobile.chat.model.ChatChannel
+import com.faforever.mobile.ui.state.UiStatePrefs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,6 +16,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ChatViewModel @Inject constructor(
     private val chatRepository: ChatRepository,
+    private val uiState: UiStatePrefs,
 ) : ViewModel() {
 
     val channels: StateFlow<Map<String, ChatChannel>> = chatRepository.channels
@@ -26,7 +28,17 @@ class ChatViewModel @Inject constructor(
     private val _selectedChannel = MutableStateFlow<String?>(null)
     val selectedChannel: StateFlow<String?> = _selectedChannel.asStateFlow()
 
+    /** The channel the user last picked (persisted); reopened as soon as it exists again. */
+    val preferredChannel: String? get() = uiState.getString(UiStatePrefs.CHAT_CHANNEL)
+
+    /** User pick: selected and remembered. */
     fun selectChannel(channel: String) {
+        _selectedChannel.value = channel
+        uiState.putString(UiStatePrefs.CHAT_CHANNEL, channel)
+    }
+
+    /** Automatic fallback pick (the remembered channel is not joined yet): not remembered. */
+    fun showChannel(channel: String) {
         _selectedChannel.value = channel
     }
 

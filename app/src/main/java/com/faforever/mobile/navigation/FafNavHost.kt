@@ -11,6 +11,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -24,6 +25,8 @@ import com.faforever.mobile.auth.LoginScreen
 import com.faforever.mobile.chat.ChatScreen
 import com.faforever.mobile.games.GamesScreen
 import com.faforever.mobile.profile.ProfileScreen
+import com.faforever.mobile.ui.state.LocalUiState
+import com.faforever.mobile.ui.state.UiStatePrefs
 
 enum class Screen(val route: String, val label: String, val icon: ImageVector) {
     Chat("chat", "Chat", Icons.AutoMirrored.Filled.Chat),
@@ -36,6 +39,14 @@ fun FafNavHost() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
+
+    val uiState = LocalUiState.current
+
+    // Remember the last bottom-bar tab; it is reopened after the (auto-)login on the next start.
+    LaunchedEffect(currentDestination?.route) {
+        val route = currentDestination?.route
+        if (Screen.entries.any { it.route == route }) uiState.putString(UiStatePrefs.NAV_TAB, route)
+    }
 
     val showBottomBar = currentDestination?.route != "login"
 
@@ -71,7 +82,9 @@ fun FafNavHost() {
             composable("login") {
                 LoginScreen(
                     onLoginSuccess = {
-                        navController.navigate(Screen.Chat.route) {
+                        val saved = uiState.getString(UiStatePrefs.NAV_TAB)
+                        val start = Screen.entries.firstOrNull { it.route == saved } ?: Screen.Chat
+                        navController.navigate(start.route) {
                             popUpTo("login") { inclusive = true }
                         }
                     },

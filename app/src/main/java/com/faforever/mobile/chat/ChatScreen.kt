@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
@@ -41,7 +40,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -56,6 +57,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.faforever.mobile.chat.model.ChatMessage
 import com.faforever.mobile.chat.model.ChatUser
 import com.faforever.mobile.chat.model.MessageType
+import com.faforever.mobile.ui.state.LocalUiState
+import com.faforever.mobile.ui.state.UiStatePrefs
+import com.faforever.mobile.ui.state.rememberPersistedLazyListState
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filter
 import com.faforever.mobile.chat.model.UserElevation
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -68,15 +74,28 @@ fun ChatScreen(viewModel: ChatViewModel = hiltViewModel()) {
     val channels by viewModel.channels.collectAsState()
     val connectionState by viewModel.connectionState.collectAsState()
     val selectedChannelName by viewModel.selectedChannel.collectAsState()
-    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val uiState = LocalUiState.current
+    val drawerState = rememberDrawerState(
+        if (uiState.getBoolean(UiStatePrefs.CHAT_USERS_DRAWER_OPEN)) DrawerValue.Open else DrawerValue.Closed,
+    )
     val coroutineScope = rememberCoroutineScope()
+
+    // Users drawer open/closed is remembered (settled value only, not mid-drag).
+    LaunchedEffect(drawerState) {
+        snapshotFlow { drawerState.currentValue }
+            .collect { uiState.putBoolean(UiStatePrefs.CHAT_USERS_DRAWER_OPEN, it == DrawerValue.Open) }
+    }
 
     val channelList = channels.keys.toList()
     val selectedChannel = selectedChannelName?.let { channels[it] }
 
     LaunchedEffect(channelList) {
-        if (selectedChannelName == null && channelList.isNotEmpty()) {
-            viewModel.selectChannel(channelList.first())
+        val preferred = viewModel.preferredChannel
+        when {
+            preferred != null && preferred in channelList && selectedChannelName != preferred ->
+                viewModel.showChannel(preferred)
+            (selectedChannelName == null || selectedChannelName !in channelList) && channelList.isNotEmpty() ->
+                viewModel.showChannel(channelList.first())
         }
     }
 
@@ -90,7 +109,13 @@ fun ChatScreen(viewModel: ChatViewModel = hiltViewModel()) {
                     style = MaterialTheme.typography.titleMedium,
                 )
                 HorizontalDivider()
-                LazyColumn {
+                val users = selectedChannel?.users
+                LazyColumn(
+                    state = rememberPersistedLazyListState(
+                        "chat.users.${selectedChannelName.orEmpty()}",
+                        ready = !users.isNullOrEmpty(),
+                    ),
+                ) {
                     items(selectedChannel?.users?.sortedBy { it.name } ?: emptyList()) { user ->
                         UserRow(user)
                     }
@@ -149,6 +174,7 @@ fun ChatScreen(viewModel: ChatViewModel = hiltViewModel()) {
             Box(modifier = Modifier.weight(1f)) {
                 if (selectedChannel != null) {
                     MessageList(
+                        channel = selectedChannel.name,
                         messages = selectedChannel.messages,
                         modifier = Modifier.fillMaxSize(),
                     )
@@ -172,11 +198,26 @@ fun ChatScreen(viewModel: ChatViewModel = hiltViewModel()) {
 }
 
 @Composable
-private fun MessageList(messages: List<ChatMessage>, modifier: Modifier = Modifier) {
-    val listState = rememberLazyListState()
+private fun MessageList(channel: String, messages: List<ChatMessage>, modifier: Modifier = Modifier) {
+    val uiState = LocalUiState.current
+    val followKey = "chat.follow.$channel"
+    val listState = rememberPersistedLazyListState("chat.messages.$channel", ready = messages.isNotEmpty())
+    // Follow the newest message only while the user is at the bottom; scrolling up pins the
+    // position (remembered per channel, across restarts).
+    var follow by rememberSaveable(channel) { mutableStateOf(uiState.getBoolean(followKey, default = true)) }
+
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.isScrollInProgress }
+            .filter { !it }
+            .drop(1)
+            .collect {
+                follow = !listState.canScrollForward
+                uiState.putBoolean(followKey, follow)
+            }
+    }
 
     LaunchedEffect(messages.size) {
-        if (messages.isNotEmpty()) {
+        if (messages.isNotEmpty() && follow) {
             listState.animateScrollToItem(messages.size - 1)
         }
     }

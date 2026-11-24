@@ -5,7 +5,7 @@ open lobbies fed by the user's own PC, and a ratings profile.
 
 | Item | Value |
 |------|-------|
-| Version | **1.1.5** (versionCode 7). Source of truth: `versionName` / `versionCode` in `app/build.gradle.kts` |
+| Version | **1.1.6** (versionCode 8). Source of truth: `versionName` / `versionCode` in `app/build.gradle.kts` |
 | Status | **Active, personal use.** Trusted home LAN only, not for distribution (see [BACKLOG](docs/BACKLOG.md)) |
 | Owner | GuyFran (guynemerp@free.fr) |
 | Authority order | `~/.claude/CLAUDE.md` → root `Projects/AGENTS.md` → this project (`AGENTS.md`, `CLAUDE.md`) |
@@ -24,6 +24,7 @@ open lobbies fed by the user's own PC, and a ratings profile.
 | 6 | [docs/UI_UX.md](docs/UI_UX.md) | Screens, states, labels, theme |
 | 7 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Modules, endpoints, relay protocol, ratified decision |
 | 8 | [docs/CHANGELOG.md](docs/CHANGELOG.md) | Version history |
+| 9 | [docs/UI_PERSISTENCE.md](docs/UI_PERSISTENCE.md) | Every screen element and how its UI state is kept (update with any new UI) |
 | — | [docs/history/COLLAB_PLAYTAB.md](docs/history/COLLAB_PLAYTAB.md) | **History only, not a status source.** Full 21-turn decision log |
 
 ## Hard rules
@@ -40,6 +41,7 @@ open lobbies fed by the user's own PC, and a ratings profile.
 
 | Version | Date | Work |
 |---------|------|------|
+| 1.1.6 | 2026-11-25 | All UI state persisted (rotation + process death): see [docs/UI_PERSISTENCE.md](docs/UI_PERSISTENCE.md) |
 | 1.1.5 | 2026-11-25 | VS Code tasks default to the release variant; debug tasks kept as "only on request" |
 | 1.1.4 | 2026-11-24 | Docs restructured under `docs/`; specs and UI/UX rewritten from code; code-audit defects logged |
 | 1.1.3 | 2026-09-18 | Release-gate Python target corrected to 3.14 |
@@ -49,4 +51,4 @@ open lobbies fed by the user's own PC, and a ratings profile.
 
 ## Build and test
 
-Use the VS Code tasks (`FAF Mobile: ...`) or Android Studio. Unit tests: `gradlew testDebugUnitTest`.
+Use the VS Code tasks (`FAF Mobile: ...`) or Android Studio. Release build: `gradlew assembleRelease` (release is signed with the debug key). Unit tests: `gradlew testReleaseUnitTest`.

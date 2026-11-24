@@ -8,6 +8,7 @@ import com.faforever.mobile.companion.CompanionRepository
 import com.faforever.mobile.companion.RelayState
 import com.faforever.mobile.games.model.Game
 import com.faforever.mobile.games.model.GameState
+import com.faforever.mobile.ui.state.UiStatePrefs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -26,9 +27,13 @@ enum class GameFilter { ALL, OPEN, PLAYING }
 class GamesViewModel @Inject constructor(
     private val companionRepository: CompanionRepository,
     private val companionPrefs: CompanionPrefs,
+    private val uiState: UiStatePrefs,
 ) : ViewModel() {
 
-    private val _filter = MutableStateFlow(GameFilter.OPEN)
+    private val _filter = MutableStateFlow(
+        GameFilter.entries.firstOrNull { it.name == uiState.getString(UiStatePrefs.GAMES_FILTER) }
+            ?: GameFilter.OPEN,
+    )
     val filter: StateFlow<GameFilter> = _filter.asStateFlow()
 
     /** null until DataStore has actually emitted — prevents flashing the setup form on entry. */
@@ -37,7 +42,7 @@ class GamesViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     /** True while the user explicitly reopened the connection settings. */
-    private val _editing = MutableStateFlow(false)
+    private val _editing = MutableStateFlow(uiState.getBoolean(UiStatePrefs.GAMES_EDITING))
     val editing: StateFlow<Boolean> = _editing.asStateFlow()
 
     val relayState: StateFlow<RelayState> = companionRepository.state
@@ -61,7 +66,7 @@ class GamesViewModel @Inject constructor(
             .sortedByDescending { it.numPlayers }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    private val _expandedGameId = MutableStateFlow<Int?>(null)
+    private val _expandedGameId = MutableStateFlow(uiState.getInt(UiStatePrefs.GAMES_EXPANDED))
     val expandedGameId: StateFlow<Int?> = _expandedGameId.asStateFlow()
 
     init {
@@ -85,24 +90,29 @@ class GamesViewModel @Inject constructor(
 
     fun setFilter(filter: GameFilter) {
         _filter.value = filter
+        uiState.putString(UiStatePrefs.GAMES_FILTER, filter.name)
     }
 
     fun toggleGameExpanded(uid: Int) {
         _expandedGameId.value = if (_expandedGameId.value == uid) null else uid
+        uiState.putInt(UiStatePrefs.GAMES_EXPANDED, _expandedGameId.value)
     }
 
     fun startEditing() {
         _editing.value = true
+        uiState.putBoolean(UiStatePrefs.GAMES_EDITING, true)
     }
 
     fun cancelEditing() {
         _editing.value = false
+        uiState.putBoolean(UiStatePrefs.GAMES_EDITING, false)
     }
 
     fun saveAndConnect(host: String, port: Int, token: String) {
         viewModelScope.launch {
             companionPrefs.save(host, port, token, enabled = true)
             _editing.value = false
+            uiState.putBoolean(UiStatePrefs.GAMES_EDITING, false)
             companionRepository.disconnect()
             companionRepository.connect(CompanionConfig(host, port, token, enabled = true))
         }

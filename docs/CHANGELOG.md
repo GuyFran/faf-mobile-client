@@ -4,7 +4,8 @@ Newest first. Versions come from commit prefixes.
 
 | Version | Commit | Change |
 |---------|--------|--------|
-| 1.1.5 | this release | VS Code tasks: release variant is the default (build, install, run, clean build); debug tasks kept, marked "only on request" |
+| 1.1.6 | this release | UI state persisted across rotation and process death (tab, channel, users drawer, filters, expanded lobby, connection editor, every list and page scroll, leaderboard); store `ui/state/UiStatePrefs.kt`; inventory `docs/UI_PERSISTENCE.md` |
+| 1.1.5 | `8d28d99` | VS Code tasks: release variant is the default (build, install, run, clean build); debug tasks kept, marked "only on request" |
 | 1.1.4 | `7e50ca9` | Docs only: canonical `docs/` layout, specs and UI/UX rewritten from code, audit findings in the backlog |
 | 1.1.3 | `2c1211c` | Docs: release-gate desktop Python target 3.13 → 3.14 |
 | 1.1.2 | `ef39baf` | Docs: stale companion-relay fork reference refreshed |

@@ -8,6 +8,7 @@ import com.faforever.mobile.chat.ChatRepository
 import com.faforever.mobile.chat.IrcConnectionState
 import com.faforever.mobile.companion.CompanionRepository
 import com.faforever.mobile.companion.RelayState
+import com.faforever.mobile.ui.state.UiStatePrefs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -34,6 +35,7 @@ class ProfileViewModel @Inject constructor(
     private val companionRepository: CompanionRepository,
     private val profileRepository: ProfileRepository,
     private val sessionManager: com.faforever.mobile.network.SessionManager,
+    private val uiState: UiStatePrefs,
 ) : ViewModel() {
 
     val username: StateFlow<String?> = tokenManager.username
@@ -89,8 +91,10 @@ class ProfileViewModel @Inject constructor(
             val ratings = profileRepository.fetchRatings(playerId)
             _ratings.value = ratings
 
-            // Auto-select the leaderboard with the most games for the graph
-            val defaultBoard = ratings.maxByOrNull { it.totalGames }?.technicalName
+            // Reopen the leaderboard picked last time; else the one with the most games.
+            val savedBoard = uiState.getString(UiStatePrefs.PROFILE_LEADERBOARD)
+                ?.takeIf { saved -> ratings.any { it.technicalName == saved } }
+            val defaultBoard = savedBoard ?: ratings.maxByOrNull { it.totalGames }?.technicalName
             if (defaultBoard != null) {
                 selectLeaderboard(defaultBoard)
             }
@@ -102,6 +106,7 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun selectLeaderboard(technicalName: String) {
+        uiState.putString(UiStatePrefs.PROFILE_LEADERBOARD, technicalName)
         if (_history.value.leaderboard == technicalName && _history.value.points.isNotEmpty()) return
 
         viewModelScope.launch {
