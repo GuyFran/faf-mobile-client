@@ -2,32 +2,14 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "FAF Mobile: Build Debug",
-      "type": "shell",
-      "command": ".\\gradlew.bat",
-      "args": ["assembleDebug"],
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
-      "problemMatcher": []
-    },
-    {
       "label": "FAF Mobile: Build Release",
       "type": "shell",
       "command": ".\\gradlew.bat",
       "args": ["assembleRelease"],
-      "group": "build",
-      "problemMatcher": []
-    },
-    {
-      "label": "FAF Mobile: Run Debug",
-      "type": "shell",
-      "command": "adb",
-      "args": ["shell", "am", "start", "-n", "com.faforever.mobile/.MainActivity"],
-      "dependsOn": ["FAF Mobile: Install to Device"],
-      "dependsOrder": "sequence",
-      "group": "build",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
       "problemMatcher": []
     },
     {
@@ -49,7 +31,23 @@
       "problemMatcher": []
     },
     {
-      "label": "FAF Mobile: Install to Device",
+      "label": "FAF Mobile: Clean Build",
+      "type": "shell",
+      "command": ".\\gradlew.bat",
+      "args": ["clean", "assembleRelease"],
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "FAF Mobile: Build Debug (only on request)",
+      "type": "shell",
+      "command": ".\\gradlew.bat",
+      "args": ["assembleDebug"],
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "FAF Mobile: Install Debug to Device (only on request)",
       "type": "shell",
       "command": ".\\gradlew.bat",
       "args": ["installDebug"],
@@ -57,10 +55,12 @@
       "problemMatcher": []
     },
     {
-      "label": "FAF Mobile: Clean Build",
+      "label": "FAF Mobile: Run Debug (only on request)",
       "type": "shell",
-      "command": ".\\gradlew.bat",
-      "args": ["clean", "assembleDebug"],
+      "command": "adb",
+      "args": ["shell", "am", "start", "-n", "com.faforever.mobile/.MainActivity"],
+      "dependsOn": ["FAF Mobile: Install Debug to Device (only on request)"],
+      "dependsOrder": "sequence",
       "group": "build",
       "problemMatcher": []
     },
@@ -68,7 +68,7 @@
       "label": "FAF Mobile: Uninstall from Device",
       "type": "shell",
       "command": ".\\gradlew.bat",
-      "args": ["uninstallDebug"],
+      "args": ["uninstallRelease"],
       "group": "build",
       "problemMatcher": []
     }

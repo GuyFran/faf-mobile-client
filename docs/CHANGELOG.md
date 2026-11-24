@@ -4,7 +4,8 @@ Newest first. Versions come from commit prefixes.
 
 | Version | Commit | Change |
 |---------|--------|--------|
-| 1.1.4 | this release | Docs only: canonical `docs/` layout, specs and UI/UX rewritten from code, audit findings in the backlog |
+| 1.1.5 | this release | VS Code tasks: release variant is the default (build, install, run, clean build); debug tasks kept, marked "only on request" |
+| 1.1.4 | `7e50ca9` | Docs only: canonical `docs/` layout, specs and UI/UX rewritten from code, audit findings in the backlog |
 | 1.1.3 | `2c1211c` | Docs: release-gate desktop Python target 3.13 → 3.14 |
 | 1.1.2 | `ef39baf` | Docs: stale companion-relay fork reference refreshed |
 | — | `fdfc306` | Docs: desktop fork renamed to `GuyFran/faf-client-python` |

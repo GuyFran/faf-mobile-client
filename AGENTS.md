@@ -5,7 +5,7 @@ open lobbies fed by the user's own PC, and a ratings profile.
 
 | Item | Value |
 |------|-------|
-| Version | **1.1.4** (versionCode 6). Source of truth: `versionName` / `versionCode` in `app/build.gradle.kts` |
+| Version | **1.1.5** (versionCode 7). Source of truth: `versionName` / `versionCode` in `app/build.gradle.kts` |
 | Status | **Active, personal use.** Trusted home LAN only, not for distribution (see [BACKLOG](docs/BACKLOG.md)) |
 | Owner | GuyFran (guynemerp@free.fr) |
 | Authority order | `~/.claude/CLAUDE.md` → root `Projects/AGENTS.md` → this project (`AGENTS.md`, `CLAUDE.md`) |
@@ -40,6 +40,7 @@ open lobbies fed by the user's own PC, and a ratings profile.
 
 | Version | Date | Work |
 |---------|------|------|
+| 1.1.5 | 2026-11-25 | VS Code tasks default to the release variant; debug tasks kept as "only on request" |
 | 1.1.4 | 2026-11-24 | Docs restructured under `docs/`; specs and UI/UX rewritten from code; code-audit defects logged |
 | 1.1.3 | 2026-09-18 | Release-gate Python target corrected to 3.14 |
 | 1.1.2 | 2026-09 | Stale fork reference refreshed |
